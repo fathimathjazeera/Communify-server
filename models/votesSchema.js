@@ -1,8 +1,5 @@
 const mongoose=require('mongoose')
 
-
-
-
 const voteSchema=mongoose.Schema({
     postId: { 
         type: mongoose.Schema.Types.ObjectId,
