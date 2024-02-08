@@ -10,6 +10,35 @@ const votes = require("../../models/votesSchema");
 
 
 
+/**
+ * @swagger
+ * paths:
+ *   /register:
+ *     post:
+ *       summary: Register a new user
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 username:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 password:
+ *                   type: string
+ *       responses:
+ *         '200':
+ *           description: Successfully registered user
+ *         '400':
+ *           description: Invalid request body
+ *         '409':
+ *           description: User with the email already exists
+ */
+
+
 // USER REGISTRATION
 const register = async (req, res) => {
   const { error, value } = authSchema.validate(req.body);

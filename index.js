@@ -14,16 +14,15 @@ connectDB(db_url)
 const userRoute = require('./routes/userRoute/user')
 const adminRoute = require('./routes/adminRoute/admin')
 const commentRoute = require('./routes/commentRoute/comment')
-const communityRoute= require('./routes/communityRoute')
+const communityRoute= require('./routes/communityRoute/community')
 const postRoute= require('./routes/postRoute/post')
-const cors=require('cors')
 const swaggerUI = require('swagger-ui-express')
 const swaggerJsDoc = require("swagger-jsdoc")
 
 
 const options = {
     definition:{
-        openapi:"3.0.0",
+        openapi:"3.0.3",
         info:{
             title:"Communify",
             version:"1.0.0",
@@ -31,11 +30,11 @@ const options = {
         },
         servers:[
             {
-                url:"https://communifyserver.mrzera.in"
+                url:"http://localhost:5001"
             }
         ],
     },
-    apis:["./routes/*.js"]
+    apis:["/routes/**/*.js"]
 
 }
 const specs = swaggerJsDoc(options)
