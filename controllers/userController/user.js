@@ -70,7 +70,7 @@ const register = async (req, res) => {
 
 
 
-
+let refreshTokens=[]
 // USER OR ADMIN LOGIN
 const login = async (req, res) => {
   const adminEmail = "admin@gmail.com";
@@ -96,19 +96,19 @@ const login = async (req, res) => {
       } else {
         bcrypt.compare(password, registeredUser.password).then((status) => {
           if (status) {
-            let resp = {
+            let user = {
               id: registeredUser._id,
               username: registeredUser.username,
               // karma:registeredUser.karma
             };
-            let refreshTokens=[]
-            let token = jwt.sign(resp, process.env.ACCESS_TOKEN_SECRET);
-            let refreshToken = jwt.sign(resp, process.env.REFRESH_TOKEN_SECRET)
+           
+            let token = generateAccessToken(user);
+            let refreshToken = jwt.sign(user, process.env.REFRESH_TOKEN_SECRET)
             refreshTokens.push(refreshToken)
             res.status(200).json({
               auth: true,
               message: "successfully logged In",
-              userId: resp.id,
+              userId: user.id,
               token: token,
               refreshToken:refreshToken
             });
@@ -130,6 +130,23 @@ const login = async (req, res) => {
 };
 
 
+//REFRESH TOKEN
+const refreshToken=(req,res)=>{
+  const refreshToken = req.body.token
+  if(refreshToken == null) return res.sendStatus(401)
+  if(!refreshTokens.includes(refreshToken)) return res.sendStatus(403)
+  jwt.verify(refreshToken,process.env.REFRESH_TOKEN_SECRET,(err,user)=>{
+if(err) return res.sendStatus(403)
+const accessToken= generateAccessToken({user:user.id})
+res.json({accessToken:accessToken})
+})
+}
+
+//GENERATE ACCESS TOKEN
+const generateAccessToken=(user)=>{
+return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET,{expiresIn:'40s'})
+}
+
 
 
 // VIEW USER ACCOUNT
@@ -142,8 +159,6 @@ const userProfile = async (req, res) => {
     data: data,
   });
 };
-
-
 
 
 
@@ -282,6 +297,7 @@ const userDownvoted = async (req, res) => {
 module.exports = {
   register,
   login,
+  refreshToken,
   userProfile,
   viewUserPost,
   viewUserComment,

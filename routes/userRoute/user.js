@@ -11,6 +11,7 @@ const tryCatch=require('../../middlewares/tryCatchMiddleware')
 
 userRoute.post('/register',tryCatch(userController.register))
 userRoute.post('/login',tryCatch(userController.login))
+userRoute.post('/token',tryCatch(userController.refreshToken))
 userRoute.get('/users/userprofile',authentication,tryCatch(userController.userProfile))
 userRoute.get('/users/viewuserpost',authentication,tryCatch(userController.viewUserPost))
 userRoute.get('/users/viewusercomment',authentication,tryCatch(userController.viewUserComment))
