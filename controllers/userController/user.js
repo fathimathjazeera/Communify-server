@@ -4,45 +4,18 @@ const authSchema = require("../validation/validation");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const posts = require("../../models/postSchema");
-const subreddit = require("../../models/subReddit");
 const comments = require("../../models/commentSchema");
 const votes = require("../../models/votesSchema");
+const sendVerificationMail = require('../../utils/sendVerificationMail')
+const crypto = require('crypto')
 
 
-
-/**
- * @swagger
- * paths:
- *   /register:
- *     post:
- *       summary: Register a new user
- *       requestBody:
- *         required: true
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 username:
- *                   type: string
- *                 email:
- *                   type: string
- *                 password:
- *                   type: string
- *       responses:
- *         '200':
- *           description: Successfully registered user
- *         '400':
- *           description: Invalid request body
- *         '409':
- *           description: User with the email already exists
- */
 
 
 // USER REGISTRATION
 const register = async (req, res) => {
   const { error, value } = authSchema.validate(req.body);
-  const { username, email, password } = value;
+  const { username, email, password} = value;
   const findUser = await users.findOne({ email: email });
   if (error) {
     res.status(422).json({
@@ -55,11 +28,13 @@ const register = async (req, res) => {
       message: "User with this email already exists",
     });
   } else {
-    await users.create({
+  const user=  await users.create({
       username: username,
       email: email,
       password: await bcrypt.hash(password, 10),
+      emailToken: crypto.randomBytes(64).toString("hex")
     });
+sendVerificationMail(user)
     res.status(200).json({
       status: "success",
       message: "successfully register",
@@ -71,16 +46,18 @@ const register = async (req, res) => {
 
 
 let refreshTokens=[]
+
+
+
 // USER OR ADMIN LOGIN
 const login = async (req, res) => {
   const adminEmail = "admin@gmail.com";
   const { error, value } = authSchema.validate(req.body);
   if (!error) {
-    const { email, password } = value;
+    const { email } = value;
     const registeredUser = await users.findOne({ email: email });
     if (email == adminEmail && password == process.env.ADMIN_PASSWORD) {
       let token = jwt.sign(adminEmail, process.env.ADMIN_SECRET_KEY);
-      
       res.status(200).json({
         auth: true,
         message: "successfully admin logged In",
@@ -99,7 +76,6 @@ const login = async (req, res) => {
             let user = {
               id: registeredUser._id,
               username: registeredUser.username,
-              // karma:registeredUser.karma
             };
            
             let token = generateAccessToken(user);
@@ -121,13 +97,13 @@ const login = async (req, res) => {
         });
       }
     }
-  } else {
-    res.status(422).json({
-      status: "error",
-      message: error.details[0].message,
-    });
-  }
-};
+  
+} 
+}
+   
+
+  
+
 
 
 //REFRESH TOKEN
@@ -147,7 +123,31 @@ const generateAccessToken=(user)=>{
 return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET,{expiresIn:'40s'})
 }
 
+//VERIFY EMAIL
+const verifyEmail = async(req, res) =>{
+try{
+const emailToken = req.body.emailToken
+if(!emailToken) return res.status(404).json("EmailToken not found...")
+const user = await users.findOne({emailToken})
+if(user){
+  user.emailToken = null
+  user.isVerified = true
+}
+await user.save()
 
+const token = generateAccessToken(user)
+res.status(200).json({
+  _id:user._id,
+  name:user.name,
+  email:user.email,
+  token,
+  isVerified
+})
+
+}catch(err){
+console.log(err)
+}
+}
 
 // VIEW USER ACCOUNT
 const userProfile = async (req, res) => {
@@ -208,10 +208,6 @@ const uploadAvatar = async (req, res) => {
     console.log(err.message, "error upload");
   }
 };
-
-
-
-
 
 
 
@@ -293,7 +289,6 @@ const userDownvoted = async (req, res) => {
 
 
 
-
 module.exports = {
   register,
   login,
@@ -306,4 +301,8 @@ module.exports = {
   deleteProfile,
   userUpvoted,
   userDownvoted,
+  verifyEmail
 };
+
+
+

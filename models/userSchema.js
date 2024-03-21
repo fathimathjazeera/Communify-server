@@ -11,6 +11,8 @@ const userSchema=new mongoose.Schema({
     created_at:Date,
     karma:{type:Number, default:0},
     isBlocked:{type:Boolean,default:false},
+    isVerified: {type:Boolean, default:false},
+    emailToken : {type: String},
     joined_communities:[   {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'subreddits', 

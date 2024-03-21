@@ -46,9 +46,6 @@ res.status(200).json({
 }
 
 
-
-
-
 const specificUser=async(req,res)=>{
 const {id}=req.params
 const singleuser=await users.findById(id)
@@ -122,8 +119,6 @@ const viewSpecificCommunity=async(req,res)=>{
     })
   }
 
-
-
   const viewCommunityPost=async(req,res)=>{
       const {communityname}=req.params
       console.log(communityname,'communitypost');
@@ -135,10 +130,6 @@ const viewSpecificCommunity=async(req,res)=>{
       data:post
       })
    }
-
-
-
-
 
 const blockUser=async(req,res)=>{
 const {userId}=req.params
@@ -177,13 +168,6 @@ res.status(200).json({
 
 
 
-
-
-
-
-
-
-
 module.exports={
     fetchAllUsers,
     specificUser,
@@ -193,9 +177,9 @@ module.exports={
     viewCommunities,
     viewSpecificCommunity,
     viewCommunityPost,
-  blockUser,
-  reportedPost,
-  paginatedUsers
+    blockUser,
+    reportedPost,
+    paginatedUsers
 }
 
 
