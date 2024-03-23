@@ -6,41 +6,55 @@ const jwt = require("jsonwebtoken");
 const posts = require("../../models/postSchema");
 const comments = require("../../models/commentSchema");
 const votes = require("../../models/votesSchema");
-const sendVerificationMail = require('../../utils/sendVerificationMail')
+const {sendVerificationMail} = require('../../utils/sendVerificationMail')
 const crypto = require('crypto')
 
 
 
-
-// USER REGISTRATION
 const register = async (req, res) => {
   const { error, value } = authSchema.validate(req.body);
-  const { username, email, password} = value;
+  const { username, email, password } = value;
   const findUser = await users.findOne({ email: email });
+
   if (error) {
-    res.status(422).json({
+    return res.status(422).json({
       status: "error",
       message: error.details[0].message,
     });
-  } else if (findUser) {
-    res.status(409).json({
+  }
+
+  if (findUser) {
+    return res.status(409).json({
       status: "error",
       message: "User with this email already exists",
     });
-  } else {
-  const user=  await users.create({
+  }
+
+  try {
+    const user = await users.create({
       username: username,
       email: email,
       password: await bcrypt.hash(password, 10),
-      emailToken: crypto.randomBytes(64).toString("hex")
+      emailToken: crypto.randomBytes(64).toString("hex"),
     });
-sendVerificationMail(user)
-    res.status(200).json({
+
+    console.log(user, "from user")
+    // Send verification email
+    await sendVerificationMail(user);
+
+    return res.status(200).json({
       status: "success",
-      message: "successfully register",
+      message: "Successfully registered. Verification email sent.",
+    });
+  } catch (error) {
+    console.error("Error registering user:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Failed to register user. Please try again later.",
     });
   }
 };
+
 
 
 
@@ -77,7 +91,6 @@ const login = async (req, res) => {
               id: registeredUser._id,
               username: registeredUser.username,
             };
-           
             let token = generateAccessToken(user);
             let refreshToken = jwt.sign(user, process.env.REFRESH_TOKEN_SECRET)
             refreshTokens.push(refreshToken)
@@ -97,12 +110,8 @@ const login = async (req, res) => {
         });
       }
     }
-  
 } 
 }
-   
-
-  
 
 
 
@@ -120,34 +129,37 @@ res.json({accessToken:accessToken})
 
 //GENERATE ACCESS TOKEN
 const generateAccessToken=(user)=>{
-return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET,{expiresIn:'40s'})
+  console.log(user, "from generate access token")
+  try{
+
+  return jwt.sign(user._id, process.env.ACCESS_TOKEN_SECRET,{expiresIn:'40s'})
+
+  }catch(err){
+    console.log(err.message)
+  }
+
+
 }
 
 //VERIFY EMAIL
 const verifyEmail = async(req, res) =>{
 try{
-const emailToken = req.body.emailToken
+const emailToken = req.query.emailToken
+console.log(emailToken,"emailtoken")
 if(!emailToken) return res.status(404).json("EmailToken not found...")
 const user = await users.findOne({emailToken})
 if(user){
-  user.emailToken = null
-  user.isVerified = true
+  user.isVerified= true
 }
-await user.save()
-
 const token = generateAccessToken(user)
 res.status(200).json({
-  _id:user._id,
-  name:user.name,
-  email:user.email,
-  token,
-  isVerified
+  message:"email verification successfull",
 })
-
 }catch(err){
 console.log(err)
 }
 }
+
 
 // VIEW USER ACCOUNT
 const userProfile = async (req, res) => {

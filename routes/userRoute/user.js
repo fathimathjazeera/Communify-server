@@ -30,7 +30,7 @@ userRoute.put("/users/editprofile", authentication, tryCatch(editProfile));
 userRoute.delete("/users/deleteprofile",authentication,tryCatch(deleteProfile));
 userRoute.get("/users/userupvote", authentication, tryCatch(userUpvoted));
 userRoute.get("/users/userdownvote", authentication, tryCatch(userDownvoted));
-userRoute.post("/verify-email",verifyEmail);
+userRoute.get("/verify-email",verifyEmail);
 
 module.exports = userRoute;
 

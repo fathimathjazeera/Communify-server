@@ -1,6 +1,6 @@
 
 # Communify - Backend
-Full-stack social networking platform. It encompasses server-side logic and APIs, managing user interactions, posts, comments, and communities. It ensures seamless communication between the frontend and the database, driving the core functionality of the platform.
+Social networking platform. It encompasses server-side logic and APIs, managing user interactions, posts, comments, and communities. It ensures seamless communication between the frontend and the database, driving the core functionality of the platform.
 ## Features
 - **Registration and Login:**
   - Users can create an account through a registration process.

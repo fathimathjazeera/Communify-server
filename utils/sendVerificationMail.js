@@ -4,11 +4,11 @@ const sendVerificationMail = (user)=>{
  const transporter = createMailTransporter()
 
  const mailOptions= {
-from :"Fathimath Jazeera",
+from :"jazeeraak@outlook.com",
 to:user.email,
 subject:"Verify your email...",
-html: `<p>Hello ${user.name}, verify your email by clicking this link...</p>
-<a href='${process.env.CLIENT_URL}/verify-email?emailToken=${user.emailToken}'>Verify Your Email</a>
+html: `<p>Hello ${user.username}, verify your email by clicking this link...</p>
+<a href='http://localhost:5001/api/verify-email?emailToken=${user.emailToken}'>Verify Your Email</a>
 `
  }
  transporter.sendMail(mailOptions,(error,info)=>{
@@ -18,8 +18,6 @@ html: `<p>Hello ${user.name}, verify your email by clicking this link...</p>
         console.log("Verification email sent")
     }
  })
-
-
 
 }
 

@@ -12,4 +12,4 @@ const createMailTransporter = ()=> {
    return transporter
 }
 
-module.exports = createMailTransporter
+module.exports = {createMailTransporter}
