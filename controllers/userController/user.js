@@ -9,7 +9,17 @@ const votes = require("../../models/votesSchema");
 const {sendVerificationMail} = require('../../utils/sendVerificationMail')
 const crypto = require('crypto')
 
+//GENERATE ACCESS TOKEN
+const generateAccessToken=(user)=>{
+  console.log(user, "from generate access token")
+  try{
 
+  return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET,{expiresIn:'40s'})
+
+  }catch(err){
+    console.log(err.message)
+  }
+}
 
 const register = async (req, res) => {
   const { error, value } = authSchema.validate(req.body);
@@ -17,14 +27,16 @@ const register = async (req, res) => {
   const findUser = await users.findOne({ email: email });
 
   if (error) {
-    return res.status(422).json({
+  res.status(422)
+    res.json({
       status: "error",
       message: error.details[0].message,
     });
   }
 
   if (findUser) {
-    return res.status(409).json({
+    res.status(400)
+    res.json({
       status: "error",
       message: "User with this email already exists",
     });
@@ -42,13 +54,15 @@ const register = async (req, res) => {
     // Send verification email
     await sendVerificationMail(user);
 
-    return res.status(200).json({
+    res.status(200)
+   res.json({
       status: "success",
       message: "Successfully registered. Verification email sent.",
     });
   } catch (error) {
     console.error("Error registering user:", error);
-    return res.status(500).json({
+   res.status(500)
+    res.json({
       status: "error",
       message: "Failed to register user. Please try again later.",
     });
@@ -68,7 +82,7 @@ const login = async (req, res) => {
   const adminEmail = "admin@gmail.com";
   const { error, value } = authSchema.validate(req.body);
   if (!error) {
-    const { email } = value;
+    const { email ,password} = value;
     const registeredUser = await users.findOne({ email: email });
     if (email == adminEmail && password == process.env.ADMIN_PASSWORD) {
       let token = jwt.sign(adminEmail, process.env.ADMIN_SECRET_KEY);
@@ -127,19 +141,7 @@ res.json({accessToken:accessToken})
 })
 }
 
-//GENERATE ACCESS TOKEN
-const generateAccessToken=(user)=>{
-  console.log(user, "from generate access token")
-  try{
 
-  return jwt.sign(user._id, process.env.ACCESS_TOKEN_SECRET,{expiresIn:'40s'})
-
-  }catch(err){
-    console.log(err.message)
-  }
-
-
-}
 
 //VERIFY EMAIL
 const verifyEmail = async(req, res) =>{
@@ -148,10 +150,9 @@ const emailToken = req.query.emailToken
 console.log(emailToken,"emailtoken")
 if(!emailToken) return res.status(404).json("EmailToken not found...")
 const user = await users.findOne({emailToken})
-if(user){
-  user.isVerified= true
-}
 const token = generateAccessToken(user)
+user.isVerified = true
+await user.save();
 res.status(200).json({
   message:"email verification successfull",
 })
@@ -159,6 +160,7 @@ res.status(200).json({
 console.log(err)
 }
 }
+
 
 
 // VIEW USER ACCOUNT
