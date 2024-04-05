@@ -6,20 +6,9 @@ const jwt = require("jsonwebtoken");
 const posts = require("../../models/postSchema");
 const comments = require("../../models/commentSchema");
 const votes = require("../../models/votesSchema");
-const {sendVerificationMail} = require('../../utils/sendVerificationMail')
-const crypto = require('crypto')
-
-//GENERATE ACCESS TOKEN
-const generateAccessToken=(user)=>{
-  console.log(user, "from generate access token")
-  try{
-
-  return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET,{expiresIn:'40s'})
-
-  }catch(err){
-    console.log(err.message)
-  }
-}
+const { sendVerificationMail } = require("../../utils/sendVerificationMail");
+const crypto = require("crypto");
+const generateAccessToken = require("../../utils/generateToken");
 
 const register = async (req, res) => {
   const { error, value } = authSchema.validate(req.body);
@@ -27,7 +16,7 @@ const register = async (req, res) => {
   const findUser = await users.findOne({ email: email });
 
   if (error) {
-  res.status(422)
+    res.status(422);
     res.json({
       status: "error",
       message: error.details[0].message,
@@ -35,7 +24,7 @@ const register = async (req, res) => {
   }
 
   if (findUser) {
-    res.status(400)
+    res.status(400);
     res.json({
       status: "error",
       message: "User with this email already exists",
@@ -50,18 +39,17 @@ const register = async (req, res) => {
       emailToken: crypto.randomBytes(64).toString("hex"),
     });
 
-    console.log(user, "from user")
     // Send verification email
     await sendVerificationMail(user);
 
-    res.status(200)
-   res.json({
+    res.status(200);
+    res.json({
       status: "success",
       message: "Successfully registered. Verification email sent.",
     });
   } catch (error) {
     console.error("Error registering user:", error);
-   res.status(500)
+    res.status(500);
     res.json({
       status: "error",
       message: "Failed to register user. Please try again later.",
@@ -69,20 +57,14 @@ const register = async (req, res) => {
   }
 };
 
-
-
-
-
-let refreshTokens=[]
-
-
+let refreshTokens = [];
 
 // USER OR ADMIN LOGIN
 const login = async (req, res) => {
   const adminEmail = "admin@gmail.com";
   const { error, value } = authSchema.validate(req.body);
   if (!error) {
-    const { email ,password} = value;
+    const { email, password } = value;
     const registeredUser = await users.findOne({ email: email });
     if (email == adminEmail && password == process.env.ADMIN_PASSWORD) {
       let token = jwt.sign(adminEmail, process.env.ADMIN_SECRET_KEY);
@@ -106,14 +88,14 @@ const login = async (req, res) => {
               username: registeredUser.username,
             };
             let token = generateAccessToken(user);
-            let refreshToken = jwt.sign(user, process.env.REFRESH_TOKEN_SECRET)
-            refreshTokens.push(refreshToken)
+            let refreshToken = jwt.sign(user, process.env.REFRESH_TOKEN_SECRET);
+            refreshTokens.push(refreshToken);
             res.status(200).json({
               auth: true,
               message: "successfully logged In",
               userId: user.id,
               token: token,
-              refreshToken:refreshToken
+              refreshToken: refreshToken,
             });
           } else {
             res.status(401).json({
@@ -124,44 +106,38 @@ const login = async (req, res) => {
         });
       }
     }
-} 
-}
-
-
+  }
+};
 
 //REFRESH TOKEN
-const refreshToken=(req,res)=>{
-  const refreshToken = req.body.token
-  if(refreshToken == null) return res.sendStatus(401)
-  if(!refreshTokens.includes(refreshToken)) return res.sendStatus(403)
-  jwt.verify(refreshToken,process.env.REFRESH_TOKEN_SECRET,(err,user)=>{
-if(err) return res.sendStatus(403)
-const accessToken= generateAccessToken({user:user.id})
-res.json({accessToken:accessToken})
-})
-}
-
-
+const refreshToken = (req, res) => {
+  const refreshToken = req.body.token;
+  if (refreshToken == null) return res.sendStatus(401);
+  if (!refreshTokens.includes(refreshToken)) return res.sendStatus(403);
+  jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403);
+    const accessToken = generateAccessToken({ user: user.id });
+    res.json({ accessToken: accessToken });
+  });
+};
 
 //VERIFY EMAIL
-const verifyEmail = async(req, res) =>{
-try{
-const emailToken = req.query.emailToken
-console.log(emailToken,"emailtoken")
-if(!emailToken) return res.status(404).json("EmailToken not found...")
-const user = await users.findOne({emailToken})
-const token = generateAccessToken(user)
-user.isVerified = true
-await user.save();
-res.status(200).json({
-  message:"email verification successfull",
-})
-}catch(err){
-console.log(err)
-}
-}
-
-
+const verifyEmail = async (req, res) => {
+  try {
+    const emailToken = req.query.emailToken;
+    console.log(emailToken, "emailtoken");
+    if (!emailToken) return res.status(404).json("EmailToken not found...");
+    const user = await users.findOne({ emailToken });
+    const token = generateAccessToken(user);
+    user.isVerified = true;
+    await user.save();
+    res.status(200).json({
+      message: "email verification successfull",
+    });
+  } catch (err) {
+    console.log(err);
+  }
+};
 
 // VIEW USER ACCOUNT
 const userProfile = async (req, res) => {
@@ -174,8 +150,6 @@ const userProfile = async (req, res) => {
   });
 };
 
-
-
 // VIEW USER POSTS
 const viewUserPost = async (req, res) => {
   const userId = req.userId;
@@ -186,8 +160,6 @@ const viewUserPost = async (req, res) => {
     data: post,
   });
 };
-
-
 
 // VIEW USER COMMENT
 const viewUserComment = async (req, res) => {
@@ -202,10 +174,6 @@ const viewUserComment = async (req, res) => {
     data: comment,
   });
 };
-
-
-
-
 
 // UPLOAD PROFILE PIC
 const uploadAvatar = async (req, res) => {
@@ -223,8 +191,6 @@ const uploadAvatar = async (req, res) => {
   }
 };
 
-
-
 // EDIT USER ACCOUNT
 const editProfile = async (req, res) => {
   const userId = req.userId;
@@ -235,8 +201,6 @@ const editProfile = async (req, res) => {
     message: "successfully fetched user details",
   });
 };
-
-
 
 // DELETE USER ACCOUNT
 const deleteProfile = async (req, res) => {
@@ -251,8 +215,6 @@ const deleteProfile = async (req, res) => {
     message: "successfully deleted user account",
   });
 };
-
-
 
 // USER UPVOTED POSTS
 const userUpvoted = async (req, res) => {
@@ -276,8 +238,6 @@ const userUpvoted = async (req, res) => {
   }
 };
 
-
-
 //USER DOWNVOTED POSTS
 const userDownvoted = async (req, res) => {
   const userId = req.userId;
@@ -300,9 +260,6 @@ const userDownvoted = async (req, res) => {
   }
 };
 
-
-
-
 module.exports = {
   register,
   login,
@@ -315,8 +272,5 @@ module.exports = {
   deleteProfile,
   userUpvoted,
   userDownvoted,
-  verifyEmail
+  verifyEmail,
 };
-
-
-
