@@ -1,32 +1,28 @@
-const express=require('express')
-const adminRoute=express.Router()
-const adminController=require('../../controllers/adminController/admin')
-const authentication= require('../../middlewares/adminJwt')
+const express = require("express");
+const adminRoute = express.Router();
+const {
+  fetchAllUsers,
+  specificUser,
+  viewUserPost,
+  viewUserComment,
+  createCommunity,
+  viewCommunities,
+  viewSpecificCommunity,
+  viewCommunityPost,
+  blockUser,
+  reportedPost,
+} = require("../../controllers/adminController/admin.js");
+const authentication = require("../../middlewares/adminJwt");
 
+adminRoute.get("/allusers", authentication, fetchAllUsers);
+adminRoute.get("/specificuser/:id", authentication, specificUser);
+adminRoute.get("/viewuserpost/:userId", authentication, viewUserPost);
+adminRoute.get("/viewusercomment/:userId", authentication, viewUserComment);
+adminRoute.post("/createcommunity", authentication, createCommunity);
+adminRoute.get("/viewcommunities", authentication, viewCommunities);
+adminRoute.get("/specificcommunity/:communityname", viewSpecificCommunity);
+adminRoute.get("/communitypost/:communityname", viewCommunityPost);
+adminRoute.put("/blockuser/:userId", blockUser);
+adminRoute.get("/reportedpost", reportedPost);
 
-
-
-adminRoute.get('/admin/allusers',authentication,adminController.fetchAllUsers)
-adminRoute.get('/specificuser/:id',authentication,adminController.specificUser)
-adminRoute.get('/admin/viewuserpost/:userId',authentication,adminController.viewUserPost)
-adminRoute.get('/admin/viewusercomment/:userId',authentication,adminController.viewUserComment)
-adminRoute.get('/admin/viewusercomment/:userId',authentication,adminController.viewUserComment)
-adminRoute.post('/admin/createcommunity',authentication,adminController.createCommunity)
-adminRoute.get('/admin/viewcommunities',authentication,adminController.viewCommunities)
-adminRoute.get('/admin/specificcommunity/:communityname',adminController.viewSpecificCommunity)
-adminRoute.get('/admin/communitypost/:communityname',adminController.viewCommunityPost)
-adminRoute.put('/admin/blockuser/:userId',adminController.blockUser)
-adminRoute.get('/admin/reportedpost',adminController.reportedPost)
-adminRoute.get('/admin/paginateduser',adminController.paginatedUsers)
-
-
-
-
-
-
-
-
-
-
-
-module.exports=adminRoute
+module.exports = adminRoute;

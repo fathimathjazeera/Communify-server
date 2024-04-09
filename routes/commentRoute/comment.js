@@ -1,19 +1,25 @@
 const express=require('express')
 const commentRoute=express.Router()
-const commentController=require('../../controllers/commentController/comment')
+const {postComment,
+    viewComments,
+    deleteComment,
+    editComment,
+    replyComment,
+    viewReply,
+    voteComment}=require('../../controllers/commentController/comment.js')
 const authentication=require('../../middlewares/jwt')
 const tryCatch=require('../../middlewares/tryCatchMiddleware')
 
 
 
 
-commentRoute.post('/users/postcomment/:id',authentication,tryCatch(commentController.postComment))
-commentRoute.get('/users/viewcomment/:id',tryCatch(commentController.viewComments))
-commentRoute.put('/users/editcomment/:commentId',authentication,tryCatch(commentController.editComment))
-commentRoute.delete('/users/deletecomment/:id',tryCatch(commentController.deleteComment))
-commentRoute.put('/users/replycomment/:commentId',authentication,tryCatch( commentController.replyComment))
-commentRoute.get('/users/viewreply/:postId',tryCatch(commentController.viewReply))
-commentRoute.put('/users/votecomment/:commentId',authentication,tryCatch(commentController.voteComment))
+commentRoute.post('/postcomment/:id',authentication,tryCatch(postComment))
+commentRoute.get('/viewcomment/:id',tryCatch(viewComments))
+commentRoute.put('/editcomment/:commentId',authentication,tryCatch(editComment))
+commentRoute.delete('/deletecomment/:id',tryCatch(deleteComment))
+commentRoute.put('/replycomment/:commentId',authentication,tryCatch( replyComment))
+commentRoute.get('/viewreply/:postId',tryCatch(viewReply))
+commentRoute.put('/votecomment/:commentId',authentication,tryCatch(voteComment))
 
 
 
